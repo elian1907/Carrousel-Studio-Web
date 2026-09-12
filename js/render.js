@@ -89,6 +89,7 @@ export function textLayout(slide, ctx = measurer()) {
   if (!text.trim()) return null;
   ctx.font = fontString(style);
   ctx.fontKerning = 'normal';
+  ctx.textRendering = 'geometricPrecision';
   const lines = wrapText(ctx, text, WIDTH * 0.82);
   const measures = lines.map(line => ctx.measureText(line || ' '));
   const sample = ctx.measureText('ÀÉgj');
@@ -113,6 +114,11 @@ export function drawText(ctx, layout, caret = null) {
   ctx.save();
   ctx.font = fontString(layout.style);
   ctx.fontKerning = 'normal';
+  // Géométrie pure, comme CoreText sur iPhone : sans ça, le navigateur
+  // épaissit le blanc (lissage) et le cale au pixel alors que le tracé noir
+  // reste exact — le liseré paraissait plus fin et décalé d'un côté (« 3D »).
+  // Mesuré : liseré 2,5 px asymétrique → 3,3 px des deux côtés.
+  ctx.textRendering = 'geometricPrecision';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   ctx.lineJoin = 'round';

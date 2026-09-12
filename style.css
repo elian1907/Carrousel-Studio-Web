@@ -153,7 +153,7 @@ button:disabled { cursor: default; opacity: .45; }
 }
 .pages::-webkit-scrollbar { display: none; }
 .pages.editing { overflow: hidden; }
-.page { flex: 0 0 100%; scroll-snap-align: start; position: relative; display: grid; place-items: center; }
+.page { flex: 0 0 100%; scroll-snap-align: start; position: relative; display: flex; justify-content: center; align-items: flex-start; }
 .canvasbox { position: relative; }
 .canvasbox canvas { display: block; }
 .handle { position: absolute; touch-action: none; cursor: grab; }

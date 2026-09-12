@@ -262,6 +262,11 @@ function paintPage(slide, node, { textOnly = false } = {}) {
     canvas.style.width = width + 'px'; canvas.style.height = height + 'px';
     node.box.style.width = width + 'px'; node.box.style.height = height + 'px';
   }
+  // Posée sur la grille des pixels physiques : un centrage à une fraction de
+  // pixel ré-échantillonne tout le bitmap et ramollit le liseré d'un côté.
+  const scale = dpr();
+  const top = Math.round(Math.max(0, (ui.pages.clientHeight - height) / 2) * scale) / scale;
+  node.box.style.marginTop = top + 'px';
   const ctx = canvas.getContext('2d');
   const image = slide.placeholder ? null : assets.image(slide.assetId);
   const key = `${slide.assetId}|${image ? 'img' : 'none'}|${JSON.stringify(slide.crop)}|${pixelWidth}`;
