@@ -1,0 +1,13 @@
+{
+  "name": "carrousel-studio-web",
+  "version": "1.0.0",
+  "description": "Carrousels photo + texte pour TikTok, façon éditeur TikTok — version web de l'app Carrousel Studio.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node start.mjs --open"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

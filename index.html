@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=overlays-content">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Carrousel Studio</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23000'/%3E%3Crect x='14' y='10' width='36' height='44' rx='5' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="phone">
+    <section id="home" class="view"></section>
+    <section id="editor" class="view hidden"></section>
+    <div id="sheet" class="sheet hidden"></div>
+    <div id="toast" class="toast hidden"></div>
+  </div>
+  <input type="file" id="fileMulti" accept="image/*" multiple hidden>
+  <input type="file" id="fileSingle" accept="image/*" hidden>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
