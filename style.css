@@ -24,30 +24,21 @@ html, body { margin: 0; height: 100%; background: #000; color: var(--ink); font-
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 .hidden { display: none !important; }
 
-/* Le cadre : plein écran sur téléphone, cadre 402 x 874 centré sur ordinateur. */
-#phone {
+/* Sur téléphone : plein écran, accueil et éditeur en deux vues. Sur
+   ordinateur (≥ 900 px) : barre latérale à gauche, l'éditeur prend le reste. */
+#app {
   position: relative;
   width: 100vw;
   height: 100dvh;
   overflow: hidden;
   background: #000;
-  margin: 0 auto;
 }
-@media (min-width: 640px) and (min-height: 700px) {
-  body { display: grid; place-items: center; background: #0b0b0c; }
-  #phone {
-    width: min(402px, calc(100dvh * 402 / 874));
-    height: min(874px, 100dvh);
-    border-radius: 36px;
-    box-shadow: 0 0 0 1px #2a2a2e, 0 30px 80px rgba(0, 0, 0, .6);
-  }
-}
-
 .view { position: absolute; inset: 0; }
 
 /* ----------------------------------------------------------------- Accueil */
 
 #home { overflow-y: auto; padding: max(14px, env(safe-area-inset-top)) 16px 40px; }
+.row.current { background: rgba(255,255,255,.06); }
 #home h1 { font-size: 17px; font-weight: 600; text-align: center; margin: 12px 0 22px; }
 .section-label { font-size: 11px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 9px; }
 .section-label span { font-weight: 400; letter-spacing: 0; text-transform: none; }
@@ -175,3 +166,26 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 .toast { position: absolute; left: 50%; bottom: 130px; transform: translateX(-50%); z-index: 30; padding: 11px 16px; border-radius: 999px; background: rgba(255,255,255,.18); backdrop-filter: blur(10px); font-size: 13px; font-weight: 500; white-space: nowrap; max-width: 90%; overflow: hidden; text-overflow: ellipsis; }
 .toast.error { background: #c0392b; }
+
+/* ------------------------------------------------------------- Ordinateur */
+
+@media (min-width: 900px) {
+  #app { display: grid; grid-template-columns: 300px 1fr; }
+  #home, #editor { position: relative; inset: auto; display: block !important; }
+  #home { border-right: 1px solid var(--line); padding: 18px 14px 40px; }
+  #home h1 { text-align: left; margin: 4px 0 22px; padding-left: 2px; }
+  #back { display: none; }
+  /* L'image entre la barre du haut et celle du bas, pas dessous. */
+  .pages { inset: 60px 0 156px 0; }
+  /* Tout l'habillage se cale sur les bords de l'image, comme sur le téléphone. */
+  .topbar { left: var(--canvas-left, 0); right: var(--canvas-right, 0); padding-top: 8px; height: 60px; background: none; }
+  .topbar .name { max-width: 70%; }
+  .tools { right: calc(var(--canvas-right, 0px) + 8px); top: 76px; }
+  .sizeslider { left: calc(var(--canvas-left, 0px) + 8px); }
+  .bottombar { left: var(--canvas-left, 0); right: var(--canvas-right, 0); padding-bottom: 16px; gap: 22px; background: none; }
+  .actions button { min-height: 48px; font-size: 16px; }
+  .sheet { align-items: center; justify-content: center; }
+  .sheet .panel { width: min(480px, 92%); border-radius: 16px; }
+  .toast { bottom: 60px; }
+  .crop .stage { padding: 12px 0; }
+}

@@ -11,6 +11,8 @@ import { makeZip } from './zip.js';
 const $ = id => document.getElementById(id);
 const el = (tag, className, html) => { const node = document.createElement(tag); if (className) node.className = className; if (html !== undefined) node.innerHTML = html; return node; };
 const dpr = () => Math.max(1, window.devicePixelRatio || 1);
+/// Ordinateur : barre latérale + éditeur côte à côte. Téléphone : deux vues.
+const isDesktop = () => window.matchMedia('(min-width: 900px)').matches;
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 /// setPointerCapture jette si le pointeur n'est plus actif : jamais bloquant.
 const capture = (node, event) => { try { node.setPointerCapture(event.pointerId); } catch { /* ignoré */ } };
@@ -82,7 +84,7 @@ function renderHome() {
     const list = el('div', 'list');
     for (const { carousel, index } of started) {
       const waiting = carousel.slides.filter(s => !s.assetId).length;
-      const row = el('button', 'row');
+      const row = el('button', 'row' + (isDesktop() && index === state.active ? ' current' : ''));
       const thumb = el('div', 'thumb');
       const canvas = document.createElement('canvas');
       thumb.append(canvas);
@@ -155,8 +157,10 @@ function buildEditor() {
 }
 
 function openEditor() {
+  if (editing) stopEditing();
   applyAccent();
-  $('home').classList.add('hidden');
+  if (!isDesktop()) $('home').classList.add('hidden');
+  else renderHome();
   editor.classList.remove('hidden');
   editing = false; sizeSliderShown = false;
   renderEditor();
@@ -166,10 +170,14 @@ function openEditor() {
 function closeEditor() {
   if (editing) stopEditing();
   state.saveNow();
-  editor.classList.add('hidden');
-  $('home').classList.remove('hidden');
+  if (!isDesktop()) {
+    editor.classList.add('hidden');
+    $('home').classList.remove('hidden');
+  }
   renderHome();
 }
+
+const editorOpen = () => isDesktop() || !editor.classList.contains('hidden');
 
 function renderEditor() {
   ui.name.textContent = state.current.name;
@@ -186,12 +194,18 @@ function renderEditor() {
 
 const pageNodes = new Map();   // id de slide → { page, canvas, handle, guideV, guideH, typing }
 
+/// L'image 9:16 aussi grande que la zone le permet, aux pixels exacts de
+/// l'écran. L'habillage (barres, icônes, glissière) se cale sur ses bords.
 function canvasSize() {
   const box = ui.pages.getBoundingClientRect();
   const scale = dpr();
-  const width = Math.round(box.width * scale) / scale;
-  const pixelWidth = Math.round(width * scale);
+  const fitted = Math.min(box.width, box.height * ASPECT);
+  const pixelWidth = Math.max(1, Math.round(fitted * scale));
   const pixelHeight = Math.round(pixelWidth / ASPECT);
+  const width = pixelWidth / scale;
+  const margin = Math.max(0, (box.width - width) / 2);
+  editor.style.setProperty('--canvas-left', margin + 'px');
+  editor.style.setProperty('--canvas-right', margin + 'px');
   return { width, height: pixelHeight / scale, pixelWidth, pixelHeight };
 }
 
@@ -872,22 +886,31 @@ async function runExport(scope) {
 // Réactions au modèle
 
 state.addEventListener('change', () => {
-  if (editor.classList.contains('hidden')) { renderHome(); return; }
+  if (!editorOpen()) { renderHome(); return; }
+  if (isDesktop()) renderHome();
   applyAccent();
   renderEditor();
 });
 state.addEventListener('paint', () => paintCurrent());
-assets.addEventListener('ready', () => { if (!editor.classList.contains('hidden')) requestPaint(); });
+assets.addEventListener('ready', () => { if (editorOpen()) requestPaint(); });
 
+let wasDesktop = isDesktop();
 window.addEventListener('resize', () => {
-  if (editor.classList.contains('hidden') || editing) return;
+  if (wasDesktop !== isDesktop()) {
+    // Changement de mise en page : on repart proprement sur la bonne vue.
+    wasDesktop = isDesktop();
+    if (isDesktop()) openEditor();
+    else { editor.classList.add('hidden'); $('home').classList.remove('hidden'); renderHome(); }
+    return;
+  }
+  if (!editorOpen() || editing) return;
   backgrounds.clear();
   renderPages(); renderSizeSlider();
   scrollToSlide(state.slide, false);
 });
 
 document.addEventListener('keydown', event => {
-  if (editor.classList.contains('hidden') || editing || !$('sheet').classList.contains('hidden')) return;
+  if (!editorOpen() || editing || !$('sheet').classList.contains('hidden')) return;
   if (event.key === 'ArrowRight') { state.selectSlide(state.slide + 1); scrollToSlide(state.slide); }
   if (event.key === 'ArrowLeft') { state.selectSlide(state.slide - 1); scrollToSlide(state.slide); }
   if (event.key === 'Escape' && cropOpen) ui.crop.querySelector('.cancel')?.click();
@@ -901,4 +924,6 @@ document.addEventListener('keydown', event => {
   await loadScripts();
   buildEditor();
   renderHome();
+  // Sur ordinateur, l'éditeur est toujours là : on ouvre le carrousel courant.
+  if (isDesktop()) openEditor();
 })();
