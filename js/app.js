@@ -76,15 +76,15 @@ const accent = () => getComputedStyle(document.documentElement).getPropertyValue
 function renderHome() {
   const home = $('home');
   home.innerHTML = '';
-  home.append(el('h1', null, 'Carrousel Studio'));
+  home.append(el('div', 'brand', '<span class="brand-name">Carrousel Studio</span><span class="brand-sub">Loslo</span>'));
 
   const started = state.carousels.map((carousel, index) => ({ carousel, index })).filter(e => e.carousel.slides.length);
   if (started.length) {
-    home.append(el('div', 'section-label', 'Mes carrousels'));
-    const list = el('div', 'list');
+    home.append(el('div', 'nav-section', 'Mes carrousels'));
+    const list = el('div', 'list glass');
     for (const { carousel, index } of started) {
       const waiting = carousel.slides.filter(s => !s.assetId).length;
-      const row = el('button', 'row' + (isDesktop() && index === state.active ? ' current' : ''));
+      const row = el('button', 'nav-item' + (isDesktop() && index === state.active ? ' active' : ''));
       const thumb = el('div', 'thumb');
       const canvas = document.createElement('canvas');
       thumb.append(canvas);
@@ -102,12 +102,12 @@ function renderHome() {
     home.append(list);
   }
 
-  home.append(el('div', 'section-label', `Scripts <span>${scripts.length} depuis Notion</span>`));
-  const list = el('div', 'list');
+  home.append(el('div', 'nav-section', `Scripts <span>${scripts.length} depuis Notion</span>`));
+  const list = el('div', 'list glass');
   for (const script of scripts) {
-    const row = el('button', 'row');
+    const row = el('button', 'nav-item');
     const badge = el('span', 'badge', scriptLabel(script.number));
-    badge.style.background = scriptColor(script.number);
+    badge.style.setProperty('--badge', scriptColor(script.number));
     const hook = (script.slides[0] || '').split('\n')[0];
     row.append(badge, el('div', 'text', `<b>${escapeHtml(script.title)}</b><small>${escapeHtml(hook)}</small>`), el('span', 'count', String(script.slides.length)), el('span', 'chevron', ICONS.chevronRight));
     row.addEventListener('click', async () => { if (await state.openScript(script)) openEditor(); });
@@ -138,8 +138,8 @@ function buildEditor() {
     <div class="bottombar" id="bottombar">
       <div class="strip" id="strip"></div>
       <div class="actions">
-        <button class="photos" id="photos">${ICONS.photos}<span>Photos</span></button>
-        <button class="export" id="export">Exporter</button>
+        <button class="chip photos" id="photos">${ICONS.photos}<span>Photos</span></button>
+        <button class="chip export" id="export"><span>Exporter</span></button>
       </div>
     </div>
     <div class="crop" id="crop"></div>`;
@@ -632,7 +632,7 @@ function openCrop() {
     <div class="head">Cadrage</div>
     <div class="stage"><div class="cropbox"><canvas></canvas><div class="outline"></div></div></div>
     <div class="formats"></div>
-    <div class="foot"><button class="cancel">Annuler</button><button class="save">Enregistrer</button></div>`;
+    <div class="foot"><button class="chip cancel">Annuler</button><button class="chip save">Enregistrer</button></div>`;
   const box = ui.crop.querySelector('.cropbox');
   const canvas = box.querySelector('canvas');
   const outline = box.querySelector('.outline');
@@ -776,7 +776,7 @@ function promptSheet(title, initial, onSave) {
     panel.append(el('h2', null, escapeHtml(title)));
     const input = el('input'); input.type = 'text'; input.value = initial; input.maxLength = LIMITS.nameLength;
     const buttons = el('div', 'buttons');
-    const cancel = el('button', 'neutral', 'Annuler'); const save = el('button', 'primary', 'Enregistrer');
+    const cancel = el('button', 'chip neutral', 'Annuler'); const save = el('button', 'chip primary', 'Enregistrer');
     cancel.addEventListener('click', closeSheet);
     save.addEventListener('click', () => { onSave(input.value); closeSheet(); });
     buttons.append(cancel, save);
@@ -789,7 +789,7 @@ function confirmSheet(title, message, onConfirm) {
   openSheet(panel => {
     panel.append(el('h2', null, escapeHtml(title)), el('p', 'note', escapeHtml(message)));
     const buttons = el('div', 'buttons');
-    const cancel = el('button', 'neutral', 'Annuler'); const ok = el('button', 'danger', 'Supprimer');
+    const cancel = el('button', 'chip neutral', 'Annuler'); const ok = el('button', 'chip danger', 'Supprimer');
     cancel.addEventListener('click', closeSheet);
     ok.addEventListener('click', () => { closeSheet(); onConfirm(); });
     buttons.append(cancel, ok);
@@ -803,7 +803,7 @@ function openCaption() {
     const area = el('textarea'); area.value = state.current.caption; area.maxLength = LIMITS.captionLength;
     area.addEventListener('input', () => state.setCaption(area.value));
     const buttons = el('div', 'buttons');
-    const copy = el('button', 'neutral', 'Copier'); const close = el('button', 'primary', 'Fermer');
+    const copy = el('button', 'chip neutral', 'Copier'); const close = el('button', 'chip primary', 'Fermer');
     copy.addEventListener('click', async () => { try { await navigator.clipboard.writeText(area.value); toast('Description copiée.'); } catch { toast('Impossible de copier.', true); } });
     close.addEventListener('click', closeSheet);
     buttons.append(copy, close);
@@ -819,7 +819,7 @@ function openBatch() {
     const update = () => { count.textContent = `${AppState.batchParts(area.value).length} bloc(s) · ${state.current.slides.length} image(s)`; };
     area.addEventListener('input', update); update();
     const buttons = el('div', 'buttons');
-    const cancel = el('button', 'neutral', 'Annuler'); const apply = el('button', 'primary', 'Répartir');
+    const cancel = el('button', 'chip neutral', 'Annuler'); const apply = el('button', 'chip primary', 'Répartir');
     cancel.addEventListener('click', closeSheet);
     apply.addEventListener('click', () => { if (state.applyBatch(area.value)) closeSheet(); });
     buttons.append(cancel, apply);
@@ -915,6 +915,44 @@ document.addEventListener('keydown', event => {
   if (event.key === 'ArrowLeft') { state.selectSlide(state.slide - 1); scrollToSlide(state.slide); }
   if (event.key === 'Escape' && cropOpen) ui.crop.querySelector('.cancel')?.click();
 });
+
+// ---------------------------------------------------------------------------
+// Reflet des surfaces en verre : une seule source lumineuse qui suit la
+// souris (port de GlassHighlights.tsx du dashboard). Jamais au doigt.
+
+(function glassHighlights() {
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const contrast = matchMedia('(prefers-contrast: more)');
+  const transparency = matchMedia('(prefers-reduced-transparency: reduce)');
+  let frame = 0, x = 0, y = 0, targets = [];
+  const clear = () => {
+    cancelAnimationFrame(frame); frame = 0;
+    targets.forEach(node => { node.style.removeProperty('--glass-x'); node.style.removeProperty('--glass-y'); node.removeAttribute('data-glass-lit'); });
+    targets = [];
+  };
+  document.addEventListener('pointermove', event => {
+    if (event.pointerType !== 'mouse' || reduced.matches || contrast.matches || transparency.matches) return;
+    const element = event.target instanceof Element ? event.target : null;
+    const surface = element?.closest('.glass, .sheet .panel');
+    const control = element?.closest('.chip, .nav-item.active');
+    const next = [surface, control].filter(Boolean);
+    if (next.length !== targets.length || next.some((node, i) => node !== targets[i])) { clear(); targets = next; }
+    x = event.clientX; y = event.clientY;
+    if (frame || !targets.length) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      targets.forEach(node => {
+        const rect = node.getBoundingClientRect();
+        node.style.setProperty('--glass-x', `${clamp((x - rect.left) / Math.max(1, rect.width) * 100, 0, 100)}%`);
+        node.style.setProperty('--glass-y', `${clamp((y - rect.top) / Math.max(1, rect.height) * 100, 0, 100)}%`);
+        node.setAttribute('data-glass-lit', 'true');
+      });
+    });
+  }, { passive: true });
+  document.addEventListener('pointerout', event => { if (!event.relatedTarget) clear(); }, { passive: true });
+  document.addEventListener('visibilitychange', clear);
+  window.addEventListener('blur', clear);
+})();
 
 // ---------------------------------------------------------------------------
 // Démarrage
